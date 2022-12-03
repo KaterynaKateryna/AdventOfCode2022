@@ -10,7 +10,7 @@ public class RucksackReorganization
         for (int i = 0; i < input.Length; ++i)
         {
             int[] items = input[i].Select(x => x >= 97 ? x - 96 : x - 38).ToArray(); // ASCII
-            rucksacks[i] = new Rucksack(items.Take(items.Length/2).ToArray(), items.Skip(items.Length / 2).ToArray());
+            rucksacks[i] = new Rucksack(items);
         }
         return rucksacks;
     }
@@ -22,9 +22,6 @@ public class RucksackReorganization
 
     private int GetMisplacedItem(Rucksack rucksack)
     {
-        Array.Sort(rucksack.First);
-        Array.Sort(rucksack.Second);
-
         int i = 0, j = 0;
         while (rucksack.First[i] != rucksack.Second[j])
         {
@@ -40,6 +37,56 @@ public class RucksackReorganization
 
         return rucksack.First[i];
     }
+
+    public long GetSumOfBadges(Rucksack[] input)
+    {
+        long sum = 0;
+        for (int i = 0; i < input.Length - 2; i += 3)
+        {
+            sum += GetBadge(input[i], input[i + 1], input[i + 2]);
+        }
+        return sum;
+    }
+
+    public int GetBadge(Rucksack first, Rucksack second, Rucksack third)
+    {
+        int i = 0, j = 0, k = 0;
+        while (first.Items[i] != second.Items[j] || second.Items[j] != third.Items[k])
+        {
+            if (first.Items[i] <= second.Items[j] && first.Items[i] <= third.Items[k])
+            {
+                i++;
+            }
+            else if (second.Items[j] <= first.Items[i] && second.Items[j] <= third.Items[k])
+            {
+                j++;
+            }
+            else
+            {
+                k++;
+            }
+        }
+
+        return first.Items[i];
+    }
 }
 
-public record class Rucksack(int[] First, int[] Second);
+public record class Rucksack
+{
+    public Rucksack(int[] items)
+    {
+        Items = items;
+        First = items.Take(items.Length / 2).ToArray();
+        Second = items.Skip(items.Length / 2).ToArray();
+
+        Array.Sort(Items);
+        Array.Sort(First);
+        Array.Sort(Second);
+    }
+
+    public int[] Items { get; }
+
+    public int[] First { get; }
+
+    public int[] Second { get; }
+}
