@@ -2,19 +2,7 @@
 
 public class RockPaperScissors
 {
-    public async Task<RoundPart1[]> GetInputPart1()
-    {
-        Round[] result = await GetRawInput();
-        return result.Select(r => new RoundPart1((MoveType)r.Them, (MoveType)r.Me)).ToArray();
-    }
-
-    public async Task<RoundPart2[]> GetInputPart2()
-    {
-        Round[] result = await GetRawInput();
-        return result.Select(r => new RoundPart2((MoveType)r.Them, (Outcome)r.Me)).ToArray();
-    }
-
-    private async Task<Round[]> GetRawInput()
+    public async Task<Round[]> GetInput()
     {
         string[] lines = await File.ReadAllLinesAsync("input.txt");
         Round[] result = new Round[lines.Length];
@@ -28,25 +16,25 @@ public class RockPaperScissors
         return result;
     }
 
-    public long GetScorePart1(RoundPart1[] rounds)
+    public long GetScorePart1(Round[] rounds)
     {
         long score = 0;
 
-        foreach (RoundPart1 round in rounds)
+        foreach (Round round in rounds)
         {
-            score += GetScore(round.Me, GetOutcome(round.Them, round.Me));
+            score += GetScore((MoveType)round.Me, GetOutcome((MoveType)round.Them, (MoveType)round.Me));
         }
 
         return score;
     }
 
-    public long GetScorePart2(RoundPart2[] rounds)
+    public long GetScorePart2(Round[] rounds)
     {
         long score = 0;
 
-        foreach (RoundPart2 round in rounds)
+        foreach (Round round in rounds)
         {
-            score += GetScore(GetMeShape(round.Them, round.Me), round.Me);
+            score += GetScore(GetMeShape((MoveType)round.Them, (Outcome)round.Me), (Outcome)round.Me);
         }
 
         return score;
@@ -130,10 +118,6 @@ public class RockPaperScissors
 }
 
 public record Round(int Them, int Me);
-
-public record RoundPart1(MoveType Them, MoveType Me);
-
-public record RoundPart2(MoveType Them, Outcome Me);
 
 public enum MoveType
 {
