@@ -40,12 +40,7 @@ public class RucksackReorganization
 
     public long GetSumOfBadges(Rucksack[] input)
     {
-        long sum = 0;
-        for (int i = 0; i < input.Length - 2; i += 3)
-        {
-            sum += GetBadge(input[i], input[i + 1], input[i + 2]);
-        }
-        return sum;
+        return input.Chunk(3).Sum(ch => GetBadge(ch[0], ch[1], ch[2]));
     }
 
     public int GetBadge(Rucksack first, Rucksack second, Rucksack third)
