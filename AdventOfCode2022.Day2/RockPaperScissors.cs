@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2022.Day2;
+﻿using System.Text;
+
+namespace AdventOfCode2022.Day2;
 
 public class RockPaperScissors
 {
@@ -18,27 +20,14 @@ public class RockPaperScissors
 
     public long GetScorePart1(Round[] rounds)
     {
-        long score = 0;
-
-        foreach (Round round in rounds)
-        {
-            score += GetScore((MoveType)round.Me, GetOutcome((MoveType)round.Them, (MoveType)round.Me));
-        }
-
-        return score;
+        return rounds.Sum(r => GetScore((MoveType)r.Me, GetOutcome((MoveType)r.Them, (MoveType)r.Me)));
     }
 
     public long GetScorePart2(Round[] rounds)
     {
-        long score = 0;
-
-        foreach (Round round in rounds)
-        {
-            score += GetScore(GetMeShape((MoveType)round.Them, (Outcome)round.Me), (Outcome)round.Me);
-        }
-
-        return score;
+        return rounds.Sum(r => GetScore(GetMeShape((MoveType)r.Them, (Outcome)r.Me), (Outcome)r.Me));
     }
+
     private long GetScore(MoveType me, Outcome outcome)
     {
         long score = (int)me + 1;
