@@ -15,9 +15,21 @@ public class CampCleanup
         );
     }
 
+    public int CountOverlappingPairs(ElfPair[] input)
+    {
+        return input.Count(pair =>
+            Overlaps(pair.First, pair.Second) || Overlaps(pair.Second, pair.First)
+        );
+    }
+
     private bool FullyContains(Assignment first, Assignment second)
     {
         return first.Start <= second.Start && first.End >= second.End;
+    }
+
+    private bool Overlaps(Assignment first, Assignment second)
+    {
+        return first.Start <= second.Start && first.End >= second.Start;
     }
 }
 

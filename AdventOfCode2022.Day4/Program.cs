@@ -4,5 +4,9 @@ CampCleanup campCleanup = new CampCleanup();
 var input = await campCleanup.GetInput();
 
 // part1
-int count = campCleanup.CountFullyContainingPairs(input);
-Console.WriteLine(count);
+int count1 = campCleanup.CountFullyContainingPairs(input);
+Console.WriteLine(count1);
+
+// part2
+int count2 = campCleanup.CountOverlappingPairs(input);
+Console.WriteLine(count2);
