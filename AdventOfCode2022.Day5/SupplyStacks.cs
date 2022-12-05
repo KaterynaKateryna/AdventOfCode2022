@@ -40,7 +40,7 @@ public class SupplyStacks
         return (stacks, moves);
     }
 
-    public void PerformMoves(Stack<char>[] stacks, Move[] moves)
+    public void PerformMovesOneByOne(Stack<char>[] stacks, Move[] moves)
     {
         foreach (Move move in moves)
         {
@@ -49,6 +49,24 @@ public class SupplyStacks
                 char item = stacks[move.From - 1].Pop();
                 stacks[move.To - 1].Push(item);
             }
+        }
+    }
+
+    public void PerformMovesTogether(Stack<char>[] stacks, Move[] moves)
+    {
+        foreach (Move move in moves)
+        {
+            Stack<char> temp = new Stack<char>();
+            for (int i = 0; i < move.Quantity; ++i)
+            {
+                char item = stacks[move.From - 1].Pop();
+                temp.Push(item);
+            }
+
+            while (temp.TryPop(out char item))
+            {
+                stacks[move.To - 1].Push(item);
+            }    
         }
     }
 

@@ -1,8 +1,13 @@
 ﻿using AdventOfCode2022.Day5;
 
 SupplyStacks supplyStacks = new SupplyStacks();
-(var stacks, var moves) = await supplyStacks.GetInput();
 
 // part 1
-supplyStacks.PerformMoves(stacks, moves);
-Console.WriteLine(supplyStacks.GetTop(stacks)); 
+(var stacks, var moves) = await supplyStacks.GetInput();
+supplyStacks.PerformMovesOneByOne(stacks, moves);
+Console.WriteLine(supplyStacks.GetTop(stacks));
+
+// part 2
+(stacks, moves) = await supplyStacks.GetInput();
+supplyStacks.PerformMovesTogether(stacks, moves);
+Console.WriteLine(supplyStacks.GetTop(stacks));
