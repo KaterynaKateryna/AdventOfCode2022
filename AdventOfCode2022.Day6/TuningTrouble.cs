@@ -6,18 +6,28 @@ public class TuningTrouble
 
     public int GetCharsForTheFirstStartOfPacketMarker(string input)
     {
-        for (int i = 3; i < input.Length; ++i)
+        return GetCharsForTheFirstMarker(input, 4);
+    }
+
+    public int GetCharsForTheFirstStartOfMessageMarker(string input)
+    {
+        return GetCharsForTheFirstMarker(input, 14);
+    }
+
+    public int GetCharsForTheFirstMarker(string input, int count)
+    {
+        for (int i = count - 1; i < input.Length; ++i)
         {
-            HashSet<char> temp = new HashSet<char>(4);
-            temp.Add(input[i]);
-            temp.Add(input[i-1]);
-            temp.Add(input[i-2]);
-            temp.Add(input[i-3]);
-            if (temp.Count == 4)
+            HashSet<char> temp = new HashSet<char>(count);
+            for (int j = 0; j < count; ++j)
+            {
+                temp.Add(input[i - j]);
+            }
+            if (temp.Count == count)
             {
                 return i + 1;
             }
         }
-        throw new InvalidDataException("Start-of=packet marker not found");
+        throw new InvalidDataException("Marker not found");
     }
 }
