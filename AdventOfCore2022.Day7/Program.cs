@@ -2,9 +2,12 @@
 
 NoSpaceLeftOnDevice program = new NoSpaceLeftOnDevice();
 string[] input = await program.GetInput();
+var tree = program.BuildTree(input);
 
 // part 1
-var tree = program.BuildTree(input);
 long sum = tree.GetSizeOfFoldersAtMost(100000);
-
 Console.WriteLine(sum);
+
+// part 2
+long size = tree.GetSizeOfFolderToDelete();
+Console.WriteLine(size);

@@ -92,6 +92,42 @@ public class Tree
 
         return sum;
     }
+
+    public long GetSizeOfFolderToDelete()
+    { 
+        long systemSize = 70000000;
+        long requiredSpace = 30000000;
+        long currentlyUsed = _root.Size;
+        long currentlyFree = systemSize - currentlyUsed;
+
+        long toBeDeleted = requiredSpace - currentlyFree;
+
+        return GetSizeOfFolderToDelete(toBeDeleted, _root.Size, _root);
+    }
+
+    private long GetSizeOfFolderToDelete(long toBeDeleted, long currentCandidate, Node node)
+    {
+        if (node.Item.Type != ItemType.Folder)
+        {
+            return currentCandidate;
+        }
+
+        if (node.Size >= toBeDeleted && node.Size < currentCandidate)
+        {
+            currentCandidate = node.Size;
+        }
+
+        foreach (Node child in node.Children)
+        {
+            long childSize = GetSizeOfFolderToDelete(toBeDeleted, currentCandidate, child);
+            if (childSize < currentCandidate)
+            {
+                currentCandidate = childSize;
+            }
+        }
+
+        return currentCandidate;
+    }
 }
 
 public class Node
