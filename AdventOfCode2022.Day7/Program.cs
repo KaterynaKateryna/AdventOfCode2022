@@ -1,4 +1,4 @@
-﻿using AdventOfCore2022.Day7;
+﻿using AdventOfCode2022.Day7;
 
 NoSpaceLeftOnDevice program = new NoSpaceLeftOnDevice();
 string[] input = await program.GetInput();

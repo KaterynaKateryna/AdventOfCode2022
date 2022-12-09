@@ -1,4 +1,4 @@
-﻿namespace AdventOfCore2022.Day7;
+﻿namespace AdventOfCode2022.Day7;
 
 public class NoSpaceLeftOnDevice
 {
