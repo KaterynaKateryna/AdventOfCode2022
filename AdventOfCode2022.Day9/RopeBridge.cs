@@ -30,30 +30,32 @@ public class RopeBridge
         return moves;
     }
 
-    public int GetTailPositionCount(Move[] moves)
+    public int GetTailPositionCount(Move[] moves, int length)
     { 
         HashSet<Position> positions = new HashSet<Position>();
 
-        Rope rope = new Rope(new Position(0, 0), new Position(0, 0));
-        positions.Add(rope.Tail);
+        Position[] rope = new Position[length];
+        for (int i = 0; i < rope.Length; ++i)
+        {
+            rope[i] = new Position(0, 0);
+            positions.Add(rope[i]);
+        }
 
         foreach (Move move in moves)
         {
             for (int i = 0; i < move.Distance; ++i)
             {
-                rope = Move(rope, move.Direction);
-                positions.Add(rope.Tail);
+                Move(rope, move.Direction);
+                positions.Add(rope[length-1]);
             }
         }
 
         return positions.Count;
     }
 
-    private Rope Move(Rope rope, Direction direction)
+    private void Move(Position[] rope, Direction direction)
     {
-        Position head = rope.Head;
-        Position tail = rope.Tail;
-
+        Position head = rope[0];
         switch (direction)
         {
             case Direction.Left:
@@ -69,34 +71,38 @@ public class RopeBridge
                 head = head with { Y = head.Y - 1 };
                 break;
         }
+        rope[0] = head;
 
-        int xDiff = Math.Abs(head.X - tail.X);
-        int yDiff = Math.Abs(head.Y - tail.Y);
-        if (xDiff > 1 || yDiff > 1)
+        for (int i = 0; i < rope.Length - 1; ++i)
         {
-            int x = tail.X > head.X ? tail.X - 1 : tail.X + 1;
-            int y = tail.Y > head.Y ? tail.Y - 1 : tail.Y + 1;
-            if (xDiff == 0)
-            {
-                tail = tail with { Y = y };
-            }
-            else if (yDiff == 0)
-            {
-                tail = tail with { X = x };
-            }
-            else
-            {
-                tail = new Position(x, y);
-            }
-        }
+            Position previous = rope[i];
+            Position tail = rope[i+1];
 
-        return new Rope(head, tail);
+            int xDiff = Math.Abs(previous.X - tail.X);
+            int yDiff = Math.Abs(previous.Y - tail.Y);
+            if (xDiff > 1 || yDiff > 1)
+            {
+                int x = tail.X > previous.X ? tail.X - 1 : tail.X + 1;
+                int y = tail.Y > previous.Y ? tail.Y - 1 : tail.Y + 1;
+                if (xDiff == 0)
+                {
+                    tail = tail with { Y = y };
+                }
+                else if (yDiff == 0)
+                {
+                    tail = tail with { X = x };
+                }
+                else
+                {
+                    tail = new Position(x, y);
+                }
+            }
+            rope[i + 1] = tail;
+        }
     }
 }
 
 public record Position(int X, int Y);
-
-public record Rope(Position Head, Position Tail);
 
 public record Move(Direction Direction, int Distance);
 
