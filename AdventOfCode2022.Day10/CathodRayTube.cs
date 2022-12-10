@@ -4,32 +4,38 @@ public class CathodRayTube
 {
     public Task<string[]> GetInput() => File.ReadAllLinesAsync("input.txt");
 
-    public long GetSumOfSignalStrengths(string[] commands)
+    public (long sum, bool[,] image) ProcessCommands(string[] commands)
     {
         int currentCycle = 0;
         long x = 1;
         long sum = 0;
+        bool[,] image = new bool[6,40];
         foreach(string command in commands)
         {
             if (command == "noop")
             {
-                (sum, currentCycle) = Cycle(currentCycle, sum, x);
+                (sum, currentCycle) = Cycle(currentCycle, sum, x, image);
             }
             else 
             {
                 int arg = int.Parse(command.Split(' ')[1]);
 
-                (sum, currentCycle) = Cycle(currentCycle, sum, x); 
-                (sum, currentCycle) = Cycle(currentCycle, sum, x);
+                (sum, currentCycle) = Cycle(currentCycle, sum, x, image); 
+                (sum, currentCycle) = Cycle(currentCycle, sum, x, image);
 
                 x += arg;
             }
         }
-        return sum;
+        return (sum, image);
     }
 
-    private (long sum, int currentCycle) Cycle(int currentCycle, long sum, long x)
+    private (long sum, int currentCycle) Cycle(int currentCycle, long sum, long x, bool[,] image)
     {
+        int row = currentCycle / 40;
+        int column = currentCycle % 40;
+
+        image[row,column] = column == x || column == x - 1 || column == x + 1;
+
         currentCycle++;
         if (
             currentCycle == 20
