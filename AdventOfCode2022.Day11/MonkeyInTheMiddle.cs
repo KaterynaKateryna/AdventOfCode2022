@@ -8,14 +8,14 @@ public class MonkeyInTheMiddle
         Monkey[] monkeys= new Monkey[lines.Length / 7 + 1];
         for (int i = 0; i < lines.Length; i += 7)
         {
-            List<int> items = GetPartAfterTheColon(lines[i + 1])
-                .Split(",").Select(x => int.Parse(x.Trim())).ToList();
+            List<ulong> items = GetPartAfterTheColon(lines[i + 1])
+                .Split(",").Select(x => ulong.Parse(x.Trim())).ToList();
 
             var @operator = GetNthWordAfterColon(lines[i + 2], 3);
             var argument = GetNthWordAfterColon(lines[i + 2], 4);
 
-            Func<int, int> operation = (item => {
-                int arg = argument == "old" ? item : int.Parse(argument);
+            Func<ulong, ulong> operation = (item => {
+                ulong arg = argument == "old" ? item : ulong.Parse(argument);
                 if (@operator == "*")
                 {
                     return item * arg;
@@ -23,8 +23,8 @@ public class MonkeyInTheMiddle
                 return item + arg;
             });
 
-            int testArgument = int.Parse(GetNthWordAfterColon(lines[i + 3], 2));
-            Func<int, bool> test = (item => item % testArgument == 0);
+            ulong testArgument = ulong.Parse(GetNthWordAfterColon(lines[i + 3], 2));
+            Func<ulong, bool> test = (item => item % testArgument == 0);
 
             int ifTrue = int.Parse(GetNthWordAfterColon(lines[i + 4], 3));
             int ifFalse = int.Parse(GetNthWordAfterColon(lines[i + 5], 3));
@@ -34,25 +34,25 @@ public class MonkeyInTheMiddle
         return monkeys;
     }
 
-    public int GetMonkeyBusinessLevel(Monkey[] monkeys)
+    public long GetMonkeyBusinessLevel(Monkey[] monkeys, int rounds, int worryDivider)
     {
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i < rounds; ++i)
         {
-            Round(monkeys);
+            Round(monkeys, worryDivider);
         }
         var topMonkeys = monkeys.OrderByDescending(m => m.Inspections).Take(2).ToArray();
         return topMonkeys[0].Inspections * topMonkeys[1].Inspections;
     }
 
-    private void Turn(Monkey[] monkeys, int currentMonkey)
+    private void Turn(Monkey[] monkeys, int currentMonkey, int worryDivider)
     {
         Monkey monkey = monkeys[currentMonkey];
         while (monkey.Items.Any())
         {
             monkey.Inspections++;
-            int item = monkey.Items[0];
-            monkey.Items.Remove(item);
-            item = monkey.Operation(item) / 3;
+            ulong item = monkey.Items[0];
+            monkey.Items.RemoveAt(0);
+            item = monkey.Operation(item) / (ulong)worryDivider;
             if (monkey.Test(item))
             {
                 monkeys[monkey.IfTrue].Items.Add(item);
@@ -64,11 +64,11 @@ public class MonkeyInTheMiddle
         }
     }
 
-    private void Round(Monkey[] monkeys)
+    private void Round(Monkey[] monkeys, int worryDivider)
     {
         for(int i = 0; i < monkeys.Length; ++i)
         {
-            Turn(monkeys, i);
+            Turn(monkeys, i, worryDivider);
         }
     }
 
@@ -80,12 +80,12 @@ public class MonkeyInTheMiddle
 }
 
 public record class Monkey(
-    List<int> Items,
-    Func<int, int> Operation,
-    Func<int, bool> Test,
+    List<ulong> Items,
+    Func<ulong, ulong> Operation,
+    Func<ulong, bool> Test,
     int IfTrue,
     int IfFalse
 )
 {
-    public int Inspections { get; set; } = 0;
+    public long Inspections { get; set; } = 0;
 }
