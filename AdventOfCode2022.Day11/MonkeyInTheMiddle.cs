@@ -2,35 +2,56 @@
 
 public class MonkeyInTheMiddle
 {
-    public async Task<Monkey[]> GetInput()
+    public async Task<Monkey[]> GetInput(int version)
     {
         string[] lines = await File.ReadAllLinesAsync("input.txt");
         Monkey[] monkeys= new Monkey[lines.Length / 7 + 1];
         for (int i = 0; i < lines.Length; i += 7)
         {
-            List<ulong> items = GetPartAfterTheColon(lines[i + 1])
-                .Split(",").Select(x => ulong.Parse(x.Trim())).ToList();
+            List<int> items = GetPartAfterTheColon(lines[i + 1])
+                .Split(",").Select(x => int.Parse(x.Trim())).ToList();
 
             var @operator = GetNthWordAfterColon(lines[i + 2], 3);
             var argument = GetNthWordAfterColon(lines[i + 2], 4);
 
-            Func<ulong, ulong> operation = (item => {
-                ulong arg = argument == "old" ? item : ulong.Parse(argument);
+            Action<IItem> operation = (item => {
                 if (@operator == "*")
                 {
-                    return item * arg;
+                    if (argument == "old")
+                    {
+                        item.Power();
+                    }
+                    else
+                    {
+                        item.Multiply(int.Parse(argument));
+                    }
                 }
-                return item + arg;
+                else
+                {
+                    item.Increment(int.Parse(argument));
+                }
             });
 
-            ulong testArgument = ulong.Parse(GetNthWordAfterColon(lines[i + 3], 2));
-            Func<ulong, bool> test = (item => item % testArgument == 0);
-
+            int testArgument = int.Parse(GetNthWordAfterColon(lines[i + 3], 2));     
             int ifTrue = int.Parse(GetNthWordAfterColon(lines[i + 4], 3));
             int ifFalse = int.Parse(GetNthWordAfterColon(lines[i + 5], 3));
 
-            monkeys[i / 7] = new Monkey(items, operation, test, ifTrue, ifFalse);
+            monkeys[i / 7] = new Monkey(items, operation, testArgument, ifTrue, ifFalse);
         }
+
+        var testArguments = monkeys.Select(m => m.TestArgument).ToList();
+        foreach (Monkey monkey in monkeys)
+        {
+            if (version == 1)
+            {
+                monkey.Items = monkey.ItemsOriginal.Select(m => new ItemV1(m) as IItem).ToList();
+            }
+            else
+            {
+                monkey.Items = monkey.ItemsOriginal.Select(m => new ItemV2(testArguments, m) as IItem).ToList();
+            }
+        }
+
         return monkeys;
     }
 
@@ -50,9 +71,11 @@ public class MonkeyInTheMiddle
         while (monkey.Items.Any())
         {
             monkey.Inspections++;
-            ulong item = monkey.Items[0];
+            IItem item = monkey.Items[0];
             monkey.Items.RemoveAt(0);
-            item = monkey.Operation(item) / (ulong)worryDivider;
+            monkey.Operation(item);
+            item.Divide(worryDivider);
+
             if (monkey.Test(item))
             {
                 monkeys[monkey.IfTrue].Items.Add(item);
@@ -80,12 +103,16 @@ public class MonkeyInTheMiddle
 }
 
 public record class Monkey(
-    List<ulong> Items,
-    Func<ulong, ulong> Operation,
-    Func<ulong, bool> Test,
+    List<int> ItemsOriginal,
+    Action<IItem> Operation,
+    int TestArgument,
     int IfTrue,
     int IfFalse
 )
 {
+    public List<IItem> Items { get; set; }
+
     public long Inspections { get; set; } = 0;
+
+    public Func<IItem, bool> Test = (item => item.Test(TestArgument));
 }
