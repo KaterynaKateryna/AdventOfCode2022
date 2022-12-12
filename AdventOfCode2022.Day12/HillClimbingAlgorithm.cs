@@ -30,16 +30,37 @@ public class HillClimbingAlgorithm
         return new Map(grid, start, end);
     }
 
-    public int GetShortestRouteBFS(Map map)
+    public int GetShortestRoute1(Map map)
     {
-        List<Node> toVisit = new List<Node>() { new Node(map.Start, 0) };
+        return GetShortestRouteBFS(map.Grid, map.Start, new HashSet<Square> { map.End });
+    }
+
+    public int GetShortestRoute2(Map map)
+    {
+        var starts = new HashSet<Square>();
+        for (int i = 0; i < map.Grid.GetLength(0); ++i)
+        {
+            for (int j = 0; j < map.Grid.GetLength(1); ++j)
+            {
+                if (map.Grid[i, j] == 'a')
+                {
+                    starts.Add(new Square(i, j));
+                }
+            }
+        }
+        return GetShortestRouteBFS(map.Grid, map.End, starts, backwards: true);
+    }
+
+    private int GetShortestRouteBFS(char[,] grid, Square start, HashSet<Square> ends, bool backwards = false)
+    {
+        List<Node> toVisit = new List<Node>() { new Node(start, 0) };
         HashSet<Square> visitedSquares = new HashSet<Square>();
 
         while (toVisit.Any())
         {
             var current = toVisit.First();
 
-            if (current.Square == map.End)
+            if (ends.Contains(current.Square))
             {
                 return current.Step;
             }
@@ -47,45 +68,62 @@ public class HillClimbingAlgorithm
             toVisit.RemoveAt(0);
             if (visitedSquares.Add(current.Square))
             {
-                List<Square> children = GetPossibleMoves(map, current.Square, visitedSquares);
+                List<Square> children = GetPossibleMoves(grid, current.Square, visitedSquares, backwards);
                 toVisit.AddRange(children.Select(c => new Node(c, current.Step + 1)));
             }
         }
         throw new Exception("Path not found");
     }
 
-    private List<Square> GetPossibleMoves(Map map, Square cur, HashSet<Square> visitedSquares)
+    private List<Square> GetPossibleMoves(
+        char[,] grid, 
+        Square cur, 
+        HashSet<Square> visitedSquares,
+        bool backwards = false
+    )
     {
         List<Square> moves = new List <Square>();
         if (cur.I > 0
-            && map.Grid[cur.I - 1, cur.J] - map.Grid[cur.I, cur.J] <= 1
+            && CanMove(grid[cur.I - 1, cur.J], grid[cur.I, cur.J], backwards)
             && !visitedSquares.Contains(cur with { I = cur.I - 1 }))
         {
             moves.Add(cur with { I = cur.I - 1 });
         }
 
-        if (cur.I < map.Grid.GetLength(0) - 1
-            && map.Grid[cur.I + 1, cur.J] - map.Grid[cur.I, cur.J] <= 1
+        if (cur.I < grid.GetLength(0) - 1
+            && CanMove(grid[cur.I + 1, cur.J], grid[cur.I, cur.J], backwards)
             && !visitedSquares.Contains(cur with { I = cur.I + 1 }))
         {
             moves.Add(cur with { I = cur.I + 1 });
         }
 
         if (cur.J > 0
-            && map.Grid[cur.I, cur.J - 1] - map.Grid[cur.I, cur.J] <= 1
+            && CanMove(grid[cur.I, cur.J - 1], grid[cur.I, cur.J], backwards)
             && !visitedSquares.Contains(cur with { J = cur.J - 1 }))
         {
             moves.Add(cur with { J = cur.J - 1 });
         }
 
-        if (cur.J < map.Grid.GetLength(1) - 1
-            && map.Grid[cur.I, cur.J + 1] - map.Grid[cur.I, cur.J] <= 1
+        if (cur.J < grid.GetLength(1) - 1
+            && CanMove(grid[cur.I, cur.J + 1],  grid[cur.I, cur.J], backwards)
             && !visitedSquares.Contains(cur with { J = cur.J + 1 }))
         {
             moves.Add(cur with { J = cur.J + 1 });
         }
 
         return moves;
+    }
+
+    private bool CanMove(char from, char to, bool backwards)
+    {
+        if (backwards)
+        {
+            return to - from <= 1;
+        }
+        else
+        {
+            return from - to <= 1;
+        }
     }
 }
 
