@@ -2,7 +2,7 @@
 
 public class DistressSignal
 {
-    public async Task<PacketPair[]> GetInput()
+    public async Task<PacketPair[]> GetInputPairs()
     {
         string[] lines = await File.ReadAllLinesAsync("input.txt");
 
@@ -17,20 +17,54 @@ public class DistressSignal
         return pairs;
     }
 
-    public int SumOfIndicesOfOrderedPairs(PacketPair[] pairs)
+    public async Task<Packet[]> GetInputPackets()
     {
-        return pairs.Where(p => IsOrdered(p)).Sum(p => p.Index);
+        string[] lines = await File.ReadAllLinesAsync("input.txt");
+        int packetCount = lines.Length / 3 * 2;
+        Packet[] packets = new Packet[packetCount + 2];
+        for (int i = 0; i < lines.Length; i += 3)
+        {
+            packets[i / 3 * 2] = Packet.Parse(lines[i]);
+            packets[i / 3 * 2 + 1] = Packet.Parse(lines[i+1]);
+        }
+
+        packets[packets.Length - 2] = Packet.Parse("[[2]]");
+        packets[packets.Length - 1] = Packet.Parse("[[6]]");
+
+        return packets;
     }
 
-    private bool IsOrdered(PacketPair pair)
+    public int SumOfIndicesOfOrderedPairs(PacketPair[] pairs)
     {
-        return pair.Left.Root.CompareTo(pair.Right.Root) <= 0;
+        return pairs
+            .Where(p => p.Left.Root.CompareTo(p.Right.Root) <= 0)
+            .Sum(p => p.Index);
+    }
+
+    public int GetDecoderKey(Packet[] packets)
+    {
+        Array.Sort(packets);
+
+        int indexOfTwo = -1;
+        int indexOfSix = -1;
+        for (int i = 0; i < packets.Length; ++i)
+        {
+            if (packets[i].ToString() == "[[2]]")
+            {
+                indexOfTwo = i + 1;
+            }
+            else if (packets[i].ToString() == "[[6]]")
+            {
+                indexOfSix = i + 1;
+            }
+        }
+        return indexOfTwo * indexOfSix;
     }
 }
 
 public record class PacketPair(Packet Left, Packet Right, int Index);
 
-public record class Packet(Node Root)
+public record class Packet(Node Root) : IComparable<Packet>
 {
     public static Packet Parse(string line)
     {
@@ -66,6 +100,20 @@ public record class Packet(Node Root)
         }
 
         return new Packet(root);
+    }
+
+    public int CompareTo(Packet? other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+        return this.Root.CompareTo(other.Root);
+    }
+
+    public override string ToString()
+    {
+        return this.Root.ToString();
     }
 }
 
@@ -109,6 +157,15 @@ public record class Node(int? Integer, List<Node> List, Node Parent) : IComparab
             }
             return this.CompareTo(TransformIntegerToList(other));
         }
+    }
+
+    public override string ToString()
+    {
+        if (this.Integer.HasValue)
+        {
+            return this.Integer.Value.ToString();
+        }
+        return $"[{string.Join(',', this.List.Select(n => n.ToString()))}]";
     }
 
     private Node TransformIntegerToList(Node node)
