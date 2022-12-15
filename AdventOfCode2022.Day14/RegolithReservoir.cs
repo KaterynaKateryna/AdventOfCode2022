@@ -23,7 +23,7 @@ public class RegolithReservoir
         return input;
     }
 
-    public int CountUnits(RockPath[] input)
+    public int CountUnits(RockPath[] input, bool hasFloor)
     { 
         HashSet<Point> solidPoints = new HashSet<Point>();
         foreach (RockPath path in input)
@@ -34,20 +34,30 @@ public class RegolithReservoir
         int bottomY = solidPoints.Max(p => p.Y);
 
         int units = 0;
-        while (CanPlaceUnit(solidPoints, bottomY))
+        while (CanPlaceUnit(solidPoints, bottomY, hasFloor))
         {
             units++;
         }
         return units;
     }
 
-    private bool CanPlaceUnit(HashSet<Point> solidPoints, int bottomY)
+    private bool CanPlaceUnit(HashSet<Point> solidPoints, int bottomY, bool hasFloor)
     {
         int x = 500;
         int y = 0;
 
+        if (hasFloor)
+        {
+            bottomY += 2;
+        }
+
         while (y < bottomY)
         {
+            if (hasFloor && y == bottomY - 1)
+            {
+                return solidPoints.Add(new Point(x, y));
+            }
+
             if (!solidPoints.Contains(new Point(x, y + 1)))
             {
                 y++;
