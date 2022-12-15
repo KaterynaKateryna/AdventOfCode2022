@@ -12,22 +12,14 @@ public class BeaconExclusionZone
 
     public long CantContainBeacon(Sensor[] sensors, int y)
     {
-        HashSet<int> points = new HashSet<int>();
+        HashSet<long> points = new HashSet<long>();
         foreach (Sensor sensor in sensors)
         {
-            int distanceToBeacon =
-                Math.Abs(sensor.Position.X - sensor.NearestBeacon.X) +
-                Math.Abs(sensor.Position.Y - sensor.NearestBeacon.Y);
-
-            int distanceToY = Math.Abs(sensor.Position.Y - y);
-
-            if (distanceToBeacon >= distanceToY)
+            Interval? interval = sensor.GetCoverageAtY(y);
+            if (interval != null)
             {
-                int rest = distanceToBeacon - distanceToY;
-                int start = sensor.Position.X - rest;
-                int end = sensor.Position.X + rest;
-                for (int i = start; i <= end; ++i)
-                { 
+                for (long i = interval.Start; i <= interval.End; ++i)
+                {
                     points.Add(i);
                 }
             }
@@ -47,9 +39,54 @@ public class BeaconExclusionZone
 
         return points.Count;
     }
+
+    public long GetTuningFrequency(Sensor[] sensors, int lowerBound, int upperBound)
+    {
+        Point location = GetBeaconLocation(sensors, lowerBound, upperBound);
+        return location.X * 4000000 + location.Y;
+    }
+
+    private Point GetBeaconLocation(Sensor[] sensors, int lowerBound, int upperBound)
+    {
+        for (int y = lowerBound; y <= upperBound; ++y)
+        {
+            List<Interval> intervals = new List<Interval>();
+            foreach (Sensor sensor in sensors)
+            {
+                Interval? interval = sensor.GetCoverageAtY(y);
+                if (interval != null)
+                {
+                    intervals.Add(interval with 
+                    { 
+                        Start = interval.Start < lowerBound ? lowerBound : interval.Start,
+                        End = interval.End > upperBound ? upperBound : interval.End,
+                    });
+                }
+            }
+
+            Interval[] sorted = intervals.OrderBy(i => i.Start).ToArray();
+            Interval merged = sorted[0];
+            for (int i = 1; i < sorted.Length; ++i)
+            {
+                if (sorted[i].Start <= merged.End + 1)
+                {
+                    if (sorted[i].End > merged.End)
+                    { 
+                        merged = merged with { End = sorted[i].End };
+                    }
+                }
+                else
+                {
+                    return new Point(merged.End + 1, y);
+                }
+            }
+        }
+
+        throw new Exception("Beacon not found");
+    }
 }
 
-public record Point(int X, int Y);
+public record Point(long X, long Y);
 
 public record Sensor(Point Position, Point NearestBeacon)
 {
@@ -63,4 +100,24 @@ public record Sensor(Point Position, Point NearestBeacon)
         int beaconY = int.Parse(match.Groups[4].Value);
         return new Sensor(new Point(sensorX, sensorY), new Point(beaconX, beaconY));
     }
+
+    public Interval? GetCoverageAtY(int y)
+    {
+        long distanceToBeacon =
+                Math.Abs(Position.X - NearestBeacon.X) +
+                Math.Abs(Position.Y - NearestBeacon.Y);
+
+        long distanceToY = Math.Abs(Position.Y - y);
+
+        if (distanceToBeacon >= distanceToY)
+        {
+            long rest = distanceToBeacon - distanceToY;
+            long start = Position.X - rest;
+            long end = Position.X + rest;
+            return new Interval(start, end);
+        }
+        return null;
+    }
 }
+
+public record Interval(long Start, long End);
